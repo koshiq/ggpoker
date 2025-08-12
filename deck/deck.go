@@ -1,6 +1,9 @@
 package deck
 
-import "fmt"
+import (
+	"fmt"
+	"strconv"
+)
 
 type Suit int
 
@@ -32,7 +35,17 @@ type Card struct {
 }
 
 func (c Card) String() string {
-	return fmt.Sprintf("%d of %s %s", c.value, c.suit, suitToUnicode(c.suit))
+	value := strconv.Itoa(c.value)
+	if c.value == 1 {
+		value = "ACE"
+	} else if c.value == 11 {
+		value = "Jack"
+	} else if c.value == 12 {
+		value = "Queen"
+	} else if c.value == 13 {
+		value = "King"
+	}
+	return fmt.Sprintf("%s of %s %s", value, c.suit, suitToUnicode(c.suit))
 }
 
 func NewCard(s Suit, v int) Card {
@@ -43,6 +56,24 @@ func NewCard(s Suit, v int) Card {
 		suit:  s,
 		value: v,
 	}
+}
+
+type Deck [52]Card
+
+func New() Deck {
+	var (
+		nSuits = 4
+		nCards = 13
+		d      = [52]Card{}
+	)
+	x := 0
+	for i := 0; i < nSuits; i++ {
+		for j := 0; j < nCards; j++ {
+			d[x] = NewCard(Suit(i), j+1)
+			x++
+		}
+	}
+	return d
 }
 
 func suitToUnicode(s Suit) string {
