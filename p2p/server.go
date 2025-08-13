@@ -1,4 +1,4 @@
-package server
+package p2p
 
 import (
 	"fmt"
@@ -17,7 +17,7 @@ type ServerConfig struct {
 type Server struct {
 	ServerConfig
 
-	listener net.ListenConfig
+	listener net.Listener
 	mu       sync.RWMutex
 	peers    map[net.Addr]*Peer
 	addPeer  chan *Peer
@@ -36,18 +36,9 @@ func (s *Server) Start() {
 	if err := s.listen(); err != nil {
 		panic(err)
 	}
-	go s.acceptLoop()
-}
 
-func (s *Server) handleConn(conn net.Conn) {
-	buf := make([]byte, 1024)
-	for {
-		n, err := conn.Read(buf)
-		if err != nil {
-			break
-		}
-		fmt.Println("received: %s\n", string(buf[:n]))
-	}
+	fmt.Printf("game server running on TCP port %s\n", s.ServerConfig.ListenAddr)
+	s.acceptLoop()
 }
 
 func (s *Server) acceptLoop() {
@@ -57,6 +48,17 @@ func (s *Server) acceptLoop() {
 			panic(err)
 		}
 		go s.handleConn(conn)
+	}
+}
+
+func (s *Server) handleConn(conn net.Conn) {
+	buf := make([]byte, 1024)
+	for {
+		n, err := conn.Read(buf)
+		if err != nil {
+			break
+		}
+		fmt.Printf("received: %s\n", string(buf[:n]))
 	}
 }
 
