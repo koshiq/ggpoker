@@ -2,12 +2,19 @@ package main
 
 import (
 	"fmt"
+	"math/rand"
+	"time"
 
 	"github.com/koshiq/ggpoker/deck"
 )
 
 func main() {
-	d := deck.New()
+	rand.Seed(time.Now().UnixNano())
 
-	fmt.Println(d)
+	for j := 0; j < 10; j++ {
+		d := deck.New()
+		fmt.Println(d)
+		fmt.Println("--------------------------------")
+	}
+
 }
