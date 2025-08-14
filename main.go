@@ -1,8 +1,10 @@
 package main
 
 import (
+	"fmt"
 	"time"
 
+	"github.com/koshiq/ggpoker/deck"
 	"github.com/koshiq/ggpoker/p2p"
 )
 
@@ -22,8 +24,10 @@ func main() {
 	remoteServer := p2p.NewServer(remoteCfg)
 	go remoteServer.Start()
 	if err := remoteServer.Connect(":3000"); err != nil {
-		panic(err)
+		fmt.Println(err)
 	}
+
+	fmt.Println(deck.New())
 	//rand.Seed(time.Now().UnixNano())
 
 	//for j := 0; j < 10; j++ {
