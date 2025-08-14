@@ -59,6 +59,22 @@ func (s *Server) Start() {
 	s.acceptLoop()
 }
 
+func (s *Server) Connect(addr string) error {
+	conn, err := net.Dial("tcp", addr)
+	if err != nil {
+		return err
+	}
+
+	peer := &Peer{
+		conn: conn,
+	}
+
+	s.addPeer <- peer
+
+	return peer.Send([]byte(s.Version))
+
+}
+
 func (s *Server) acceptLoop() {
 	for {
 		conn, err := s.listener.Accept()
@@ -107,8 +123,8 @@ func (s *Server) loop() {
 	for {
 		select {
 		case peer := <-s.delPeer:
-			delete(s.peers, peer.conn.RemoteAddr())
 			fmt.Printf("player disconnected: %s\n", peer.conn.RemoteAddr())
+			delete(s.peers, peer.conn.RemoteAddr())
 		case peer := <-s.addPeer:
 			s.peers[peer.conn.RemoteAddr()] = peer
 			fmt.Printf("new player connected: %s\n", peer.conn.RemoteAddr())
