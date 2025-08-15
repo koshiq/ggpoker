@@ -3,7 +3,6 @@ package p2p
 import (
 	"fmt"
 	"net"
-	"sync"
 
 	"github.com/sirupsen/logrus"
 )
@@ -18,7 +17,6 @@ type Server struct {
 
 	handler   Handler
 	transport *TCPTransport
-	mu        sync.RWMutex
 	peers     map[net.Addr]*Peer
 	addPeer   chan *Peer
 	delPeer   chan *Peer
