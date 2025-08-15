@@ -33,14 +33,19 @@ func NewServer(cfg ServerConfig) *Server {
 		msgCh:        make(chan *Message),
 	}
 
-	s.transport = NewTCPTransport(cfg.ListenAddr, s.addPeer, s.delPeer)
+	tr := NewTCPTransport(s.ListenAddr)
+	s.transport = tr
+
+	tr.AddPeer = s.transport.AddPeer
+	tr.DelPeer = s.transport.DelPeer
+
 	return s
 }
 
 func (s *Server) Start() {
 	go s.loop()
 	fmt.Printf("game server running on TCP port %s\n", s.ServerConfig.ListenAddr)
-	s.acceptLoop()
+	s.transport.ListenAndAccept()
 }
 
 func (s *Server) Connect(addr string) error {
@@ -63,11 +68,19 @@ func (s *Server) loop() {
 	for {
 		select {
 		case peer := <-s.delPeer:
-			fmt.Printf("player disconnected: %s\n", peer.conn.RemoteAddr())
+			logrus.WithFields(logrus.Field{
+				"addr": peer.conn.RemoteAddr(),
+			}).Info("new player disconnected")
+
 			delete(s.peers, peer.conn.RemoteAddr())
+
 		case peer := <-s.addPeer:
+			logrus.WithFields(logrus.Fields{
+				"addr": peer.conn.RemoteAddr(),
+			}).Info("new player connected")
+
 			s.peers[peer.conn.RemoteAddr()] = peer
-			fmt.Printf("new player connected: %s\n", peer.conn.RemoteAddr())
+
 		case msg := <-s.msgCh:
 			if err := s.handler.HandleMessage(msg); err != nil {
 				panic(err)
