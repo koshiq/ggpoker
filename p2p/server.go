@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"net"
 	"sync"
+
+	"github.com/sirupsen/logrus"
 )
 
 type ServerConfig struct {
@@ -34,17 +36,22 @@ func NewServer(cfg ServerConfig) *Server {
 	}
 
 	tr := NewTCPTransport(s.ListenAddr)
+
 	s.transport = tr
 
-	tr.AddPeer = s.transport.AddPeer
-	tr.DelPeer = s.transport.DelPeer
+	s.addPeer = tr.AddPeer
+	s.delPeer = tr.DelPeer
 
 	return s
 }
 
 func (s *Server) Start() {
 	go s.loop()
-	fmt.Printf("game server running on TCP port %s\n", s.ServerConfig.ListenAddr)
+	fmt.Printf("game server running on TCP port %s\n", s.ListenAddr)
+	logrus.WithFields(logrus.Fields{
+		"port": s.ListenAddr,
+		"type": "Texas Hold'em",
+	}).Info("started new game server")
 	s.transport.ListenAndAccept()
 }
 
@@ -68,13 +75,15 @@ func (s *Server) loop() {
 	for {
 		select {
 		case peer := <-s.delPeer:
-			logrus.WithFields(logrus.Field{
+			logrus.WithFields(logrus.Fields{
 				"addr": peer.conn.RemoteAddr(),
 			}).Info("new player disconnected")
 
 			delete(s.peers, peer.conn.RemoteAddr())
 
 		case peer := <-s.addPeer:
+			go peer.ReadLoop(s.msgCh)
+
 			logrus.WithFields(logrus.Fields{
 				"addr": peer.conn.RemoteAddr(),
 			}).Info("new player connected")

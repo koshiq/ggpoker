@@ -46,7 +46,7 @@ type TCPTransport struct {
 	DelPeer    chan *Peer
 }
 
-func NewTCPTransport(addr string, addPeer, delPeer chan *Peer) *TCPTransport {
+func NewTCPTransport(addr string) *TCPTransport {
 	return &TCPTransport{
 		listenAddr: addr,
 	}
@@ -70,7 +70,7 @@ func (t *TCPTransport) ListenAndAccept() error {
 			conn: conn,
 		}
 
-		t.addPeer <- peer
+		t.AddPeer <- peer
 
 	}
 	return fmt.Errorf("TCP transport stopped reason: ?")
