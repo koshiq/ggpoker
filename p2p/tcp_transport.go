@@ -55,7 +55,7 @@ func NewTCPTransport(addr string) *TCPTransport {
 func (t *TCPTransport) ListenAndAccept() error {
 	ln, err := net.Listen("tcp", t.listenAddr)
 	if err != nil {
-		return err
+		return errr
 	}
 	t.listener = ln
 
