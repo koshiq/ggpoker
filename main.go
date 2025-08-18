@@ -1,10 +1,9 @@
 package main
 
 import (
-	"fmt"
+	"log"
 	"time"
 
-	"github.com/koshiq/ggpoker/deck"
 	"github.com/koshiq/ggpoker/p2p"
 )
 
@@ -18,22 +17,15 @@ func main() {
 	time.Sleep(1 * time.Second)
 
 	remoteCfg := p2p.ServerConfig{
-		Version:    "GOker 0.0.1\n",
-		ListenAddr: ":4000",
+		Version:     "GOker 0.0.1\n",
+		ListenAddr:  ":4000",
+		GameVariant: p2p.TexasHoldem,
 	}
 	remoteServer := p2p.NewServer(remoteCfg)
 	go remoteServer.Start()
 	if err := remoteServer.Connect(":3000"); err != nil {
-		fmt.Println(err)
+		log.Fatal(err)
 	}
-
-	fmt.Println(deck.New())
-	//rand.Seed(time.Now().UnixNano())
-
-	//for j := 0; j < 10; j++ {
-	//d := deck.New()
-	//fmt.Println(d)
-	//fmt.Println("--------------------------------")
 
 	select {}
 }

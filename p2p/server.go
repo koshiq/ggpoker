@@ -7,9 +7,25 @@ import (
 	"github.com/sirupsen/logrus"
 )
 
+type GameVariant uint8
+
+func (gv GameVariant) String() string {
+	switch gv {
+	case TexasHoldem:
+		return "Texas Hold'em"
+	}
+	return "Other"
+}
+
+const (
+	TexasHoldem GameVariant = iota
+	Other
+)
+
 type ServerConfig struct {
-	Version    string
-	ListenAddr string
+	Version     string
+	ListenAddr  string
+	GameVariant GameVariant
 }
 
 type Server struct {
@@ -47,8 +63,8 @@ func (s *Server) Start() {
 	go s.loop()
 	fmt.Printf("game server running on TCP port %s\n", s.ListenAddr)
 	logrus.WithFields(logrus.Fields{
-		"port": s.ListenAddr,
-		"type": "Texas Hold'em",
+		"port":    s.ListenAddr,
+		"variant": s.GameVariant,
 	}).Info("started new game server")
 	s.transport.ListenAndAccept()
 }
