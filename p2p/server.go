@@ -1,6 +1,8 @@
 package p2p
 
 import (
+	"bytes"
+	"encoding/gob"
 	"fmt"
 	"net"
 
@@ -44,6 +46,7 @@ type Server struct {
 func NewServer(cfg ServerConfig) *Server {
 
 	s := &Server{
+
 		ServerConfig: cfg,
 		peers:        make(map[net.Addr]*Peer),
 		addPeer:      make(chan *Peer),
@@ -68,6 +71,18 @@ func (s *Server) Start() {
 		"variant": s.GameVariant,
 	}).Info("started new game server")
 	s.transport.ListenAndAccept()
+}
+
+func (s *Server) SendHandshake(p *Peer) error {
+	hs := &Handshake{
+		Version:     s.Version,
+		GameVariant: s.GameVariant,
+	}
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(hs); err != nil {
+		return err
+	}
+	return p.Send(buf.Bytes())
 }
 
 func (s *Server) Connect(addr string) error {
@@ -97,6 +112,14 @@ func (s *Server) loop() {
 			delete(s.peers, peer.conn.RemoteAddr())
 
 		case peer := <-s.addPeer:
+			if err := s.handshake(peer); err != nil {
+				logrus.WithFields(logrus.Fields{
+					"addr": peer.conn.RemoteAddr(),
+					"err":  err,
+				}).Error("handshake failed")
+				continue
+			}
+
 			go peer.ReadLoop(s.msgCh)
 
 			logrus.WithFields(logrus.Fields{
@@ -112,6 +135,25 @@ func (s *Server) loop() {
 		}
 	}
 
+}
+
+type Handshake struct {
+	Version     string
+	GameVariant GameVariant
+}
+
+func (s *Server) handshake(p *Peer) error {
+	hs := &Handshake{}
+	if err := gob.NewDecoder(p.conn).Decode(hs); err != nil {
+		return err
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"peer":    p.conn.RemoteAddr(),
+		"version": hs.Version,
+		"variant": hs.GameVariant,
+	}).Info("received handshake")
+	return nil
 }
 
 func (s *Server) handleMessage(msg *Message) error {
