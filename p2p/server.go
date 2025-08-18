@@ -13,8 +13,11 @@ func (gv GameVariant) String() string {
 	switch gv {
 	case TexasHoldem:
 		return "Texas Hold'em"
+	case Other:
+		return "other"
+	default:
+		return "unknown"
 	}
-	return "Other"
 }
 
 const (
@@ -31,7 +34,6 @@ type ServerConfig struct {
 type Server struct {
 	ServerConfig
 
-	handler   Handler
 	transport *TCPTransport
 	peers     map[net.Addr]*Peer
 	addPeer   chan *Peer
@@ -42,7 +44,6 @@ type Server struct {
 func NewServer(cfg ServerConfig) *Server {
 
 	s := &Server{
-		handler:      &DefaultHandler{},
 		ServerConfig: cfg,
 		peers:        make(map[net.Addr]*Peer),
 		addPeer:      make(chan *Peer),
@@ -105,10 +106,15 @@ func (s *Server) loop() {
 			s.peers[peer.conn.RemoteAddr()] = peer
 
 		case msg := <-s.msgCh:
-			if err := s.handler.HandleMessage(msg); err != nil {
+			if err := s.handleMessage(msg); err != nil {
 				panic(err)
 			}
 		}
 	}
 
+}
+
+func (s *Server) handleMessage(msg *Message) error {
+	fmt.Printf("%+v\n", msg)
+	return nil
 }
