@@ -2,8 +2,10 @@ package p2p
 
 import (
 	"bytes"
+	"encoding/binary"
 	"encoding/gob"
 	"fmt"
+	"io"
 	"net"
 	"time"
 
@@ -42,6 +44,8 @@ type Server struct {
 	addPeer   chan *Peer
 	delPeer   chan *Peer
 	msgCh     chan *Message
+
+	gameState *GameState
 }
 
 func NewServer(cfg ServerConfig) *Server {
@@ -53,6 +57,7 @@ func NewServer(cfg ServerConfig) *Server {
 		addPeer:      make(chan *Peer),
 		delPeer:      make(chan *Peer),
 		msgCh:        make(chan *Message),
+		gameState:    NewGameState(),
 	}
 
 	tr := NewTCPTransport(s.ListenAddr)
@@ -137,6 +142,13 @@ func (s *Server) loop() {
 type Handshake struct {
 	Version     string
 	GameVariant GameVariant
+}
+
+func (hs *Handshake) Encode(w io.Writer) error {
+	if err := binary.Write(w, binary.LittleEndian, hs.Version); err != nil {
+		return err
+	}
+	return binary.Write(w, binary.LittleEndian, hs.GameVariant)
 }
 
 func (s *Server) handshake(p *Peer) error {
