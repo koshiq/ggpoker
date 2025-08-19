@@ -9,15 +9,17 @@ import (
 
 func main() {
 	cfg := p2p.ServerConfig{
-		Version:    "GOker 0.0.1\n",
-		ListenAddr: ":3000",
+		Version:     "GGPOKER V0.1-alpha",
+		ListenAddr:  ":3000",
+		GameVariant: p2p.TexasHoldem,
 	}
 	server := p2p.NewServer(cfg)
 	go server.Start()
+
 	time.Sleep(1 * time.Second)
 
 	remoteCfg := p2p.ServerConfig{
-		Version:     "GOker 0.0.1\n",
+		Version:     "GGPOKER V0.1-alpha",
 		ListenAddr:  ":4000",
 		GameVariant: p2p.TexasHoldem,
 	}
