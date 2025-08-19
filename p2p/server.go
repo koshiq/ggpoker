@@ -82,6 +82,7 @@ func (s *Server) SendHandshake(p *Peer) error {
 	hs := &Handshake{
 		Version:     s.Version,
 		GameVariant: s.GameVariant,
+		GameStatus:  s.gameState.GameStatus,
 	}
 	buf := new(bytes.Buffer)
 
@@ -167,9 +168,10 @@ func (s *Server) handshake(p *Peer) error {
 	}
 
 	logrus.WithFields(logrus.Fields{
-		"peer":    p.conn.RemoteAddr(),
-		"version": hs.Version,
-		"variant": hs.GameVariant,
+		"peer":       p.conn.RemoteAddr(),
+		"version":    hs.Version,
+		"variant":    hs.GameVariant,
+		"gameStatus": hs.GameStatus,
 	}).Info("received handshake")
 	return nil
 }
