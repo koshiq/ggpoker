@@ -86,9 +86,13 @@ func (s *Server) SendHandshake(p *Peer) error {
 		GameVariant: s.GameVariant,
 	}
 	buf := new(bytes.Buffer)
+
 	if err := gob.NewEncoder(buf).Encode(hs); err != nil {
 		return err
 	}
+	//if err := hs.Encode(buf); err != nil {
+	//	return err
+	//}
 	return p.Send(buf.Bytes())
 }
 
@@ -145,10 +149,22 @@ type Handshake struct {
 }
 
 func (hs *Handshake) Encode(w io.Writer) error {
-	if err := binary.Write(w, binary.LittleEndian, hs.Version); err != nil {
+	if err := binary.Write(w, binary.LittleEndian, []byte(hs.Version)); err != nil {
 		return err
 	}
-	return binary.Write(w, binary.LittleEndian, hs.GameVariant)
+	return binary.Write(w, binary.LittleEndian, &hs.GameVariant)
+}
+
+func (hs *Handshake) Decode(r io.Reader) error {
+	if err := binary.Read(r, binary.LittleEndian, []byte(hs.Version)); err != nil {
+		return err
+	}
+
+	var variant uint8
+	binary.Read(r, binary.LittleEndian, &variant)
+	hs.GameVariant = GameVariant(variant)
+
+	return nil
 }
 
 func (s *Server) handshake(p *Peer) error {
