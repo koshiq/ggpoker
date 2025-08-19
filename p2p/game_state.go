@@ -1,18 +1,18 @@
 package p2p
 
-type Round uint32
+type GameStatus uint32
 
 const (
-	Dealing Round = iota
-	PreFlop
-	Flop
-	Turn
-	River
+	GameStatusDealing GameStatus = iota
+	GameStatusPreFlop
+	GameStatusFlop
+	GameStatusTurn
+	GameStatusRiver
 )
 
 type GameState struct {
-	isDealer bool
-	Round    uint32
+	isDealer   bool
+	GameStatus GameStatus
 }
 
 func NewGameState() *GameState {
