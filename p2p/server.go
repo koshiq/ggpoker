@@ -141,42 +141,46 @@ func (s *Server) loop() {
 			delete(s.peers, peer.conn.RemoteAddr())
 
 		case peer := <-s.addPeer:
-			if err := s.handshake(peer); err != nil {
-				logrus.Errorf("%s:handshake with incoming player failed: %s", s.ListenAddr, err)
-				peer.conn.Close()
-				delete(s.peers, peer.conn.RemoteAddr())
-				continue
+			if err := s.handleNewPeer(peer); err != nil {
+				logrus.Errorf("failed to handle new peer: %v", err)
 			}
-
-			go peer.ReadLoop(s.msgCh)
-
-			if !peer.outbound {
-				if err := s.SendHandshake(peer); err != nil {
-					logrus.Errorf("failed to send handshake to incoming connection: %v", err)
-					peer.conn.Close()
-					delete(s.peers, peer.conn.RemoteAddr())
-					continue
-				}
-
-				if err := s.sendPeerList(peer); err != nil {
-					logrus.Errorf("failed to send peer list to incoming connection: %v", err)
-					// peer.conn.Close()
-					// delete(s.peers, peer.conn.RemoteAddr())
-					continue
-				} // This closing brace was missing!
-			}
-
-			logrus.WithFields(logrus.Fields{
-				"addr": peer.conn.RemoteAddr(),
-			}).Info("handshake successful: new player connected")
-			s.peers[peer.conn.RemoteAddr()] = peer
-
 		case msg := <-s.msgCh:
 			if err := s.handleMessage(msg); err != nil {
 				panic(err)
 			}
 		}
 	}
+}
+
+func (s *Server) handleNewPeer(peer *Peer) error {
+	if err := s.handshake(peer); err != nil {
+		peer.conn.Close()
+		delete(s.peers, peer.conn.RemoteAddr())
+
+		return fmt.Errorf("%s:handshake with incoming player failed: %s", s.ListenAddr, err)
+	}
+
+	go peer.ReadLoop(s.msgCh)
+
+	if !peer.outbound {
+		if err := s.SendHandshake(peer); err != nil {
+			peer.conn.Close()
+			delete(s.peers, peer.conn.RemoteAddr())
+
+			return fmt.Errorf("failed to send handshake to incoming connection: %v", err)
+		}
+
+		if err := s.sendPeerList(peer); err != nil {
+			return fmt.Errorf("failed to send peer list to incoming connection: %v", err)
+		}
+	}
+
+	logrus.WithFields(logrus.Fields{
+		"addr": peer.conn.RemoteAddr(),
+	}).Info("handshake successful: new player connected")
+	s.peers[peer.conn.RemoteAddr()] = peer
+
+	return nil
 }
 
 func (s *Server) handshake(p *Peer) error {
