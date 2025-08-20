@@ -2,8 +2,8 @@ package p2p
 
 type GameStatus uint32
 
-func (g *GameStatus) String() string {
-	switch *g {
+func (g GameStatus) String() string {
+	switch g {
 	case GameStatusWaiting:
 		return "WAITING"
 	case GameStatusDealing:

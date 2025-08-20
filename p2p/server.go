@@ -42,7 +42,6 @@ type Server struct {
 	addPeer   chan *Peer
 	delPeer   chan *Peer
 	msgCh     chan *Message
-
 	gameState *GameState
 }
 
@@ -71,9 +70,8 @@ func NewServer(cfg ServerConfig) *Server {
 func (s *Server) Start() {
 	go s.loop()
 	logrus.WithFields(logrus.Fields{
-		"port":       s.ListenAddr,
-		"variant":    s.GameVariant,
-		"gameStatus": s.gameState.GameStatus,
+		"port":    s.ListenAddr,
+		"variant": s.GameVariant,
 	}).Info("started new game server")
 	s.transport.ListenAndAccept()
 }
@@ -93,7 +91,7 @@ func (s *Server) SendHandshake(p *Peer) error {
 }
 
 func (s *Server) Connect(addr string) error {
-	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
+	conn, err := net.DialTimeout("tcp", addr, 1*time.Minute)
 	if err != nil {
 		return err
 	}
@@ -171,7 +169,7 @@ func (s *Server) handshake(p *Peer) error {
 		"peer":       p.conn.RemoteAddr(),
 		"version":    hs.Version,
 		"variant":    hs.GameVariant,
-		"gameStatus": hs.GameStatus,
+		"gameStatus": hs.GameStatus.String(),
 	}).Info("received handshake")
 	return nil
 }
