@@ -21,15 +21,21 @@ func makeServerAndStart(addr string) *p2p.Server {
 }
 
 func main() {
-	playerA := makeServerAndStart(":3000")
+	playerA := makeServerAndStart("127.0.0.1:3000")
 	playerB := makeServerAndStart(":4000")
 	playerC := makeServerAndStart(":5000")
+	playerD := makeServerAndStart(":6000")
 
-	playerC.Connect(playerA.ListenAddr)
+	playerB.Connect(playerA.ListenAddr)
+	playerC.Connect(playerB.ListenAddr)
+	playerD.Connect(playerC.ListenAddr)
 
 	time.Sleep(2 * time.Millisecond)
 
-	playerB.Connect(playerC.ListenAddr)
+	//playerB.Connect(playerC.ListenAddr)
+
+	_ = playerA
+	_ = playerB
 
 	select {}
 }

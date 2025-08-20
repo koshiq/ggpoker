@@ -51,7 +51,7 @@ func NewServer(cfg ServerConfig) *Server {
 
 		ServerConfig: cfg,
 		peers:        make(map[net.Addr]*Peer),
-		addPeer:      make(chan *Peer),
+		addPeer:      make(chan *Peer, 10),
 		delPeer:      make(chan *Peer),
 		msgCh:        make(chan *Message),
 		gameState:    NewGameState(),
