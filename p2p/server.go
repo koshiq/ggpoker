@@ -5,7 +5,6 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
-	"reflect"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -83,7 +82,7 @@ func (s *Server) sendPeerList(p *Peer) error {
 		Peers: make([]string, len(s.peers)),
 	}
 
-	msg := NewMessage(NetAddr(s.ListenAddr), peerList)
+	msg := NewMessage(s.ListenAddr, peerList)
 
 	buf := new(bytes.Buffer)
 	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
@@ -195,11 +194,18 @@ func (s *Server) handshake(p *Peer) error {
 }
 
 func (s *Server) handleMessage(msg *Message) error {
-	panic(reflect.TypeOf(msg))
+	logrus.WithFields(logrus.Fields{
+		"from": msg.From,
+	}).Info("received message")
+
+	switch v := msg.Payload.(type) {
+	case *MessagePeerList:
+		fmt.Printf("%v\n", v)
+	}
 	return nil
 }
 
 func init() {
 	gob.Register(MessagePeerList{})
-	gob.Register(NetAddr(""))
+	gob.Register(Message{})
 }
