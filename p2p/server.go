@@ -5,6 +5,7 @@ import (
 	"encoding/gob"
 	"fmt"
 	"net"
+	"reflect"
 	"time"
 
 	"github.com/sirupsen/logrus"
@@ -76,6 +77,21 @@ func (s *Server) Start() {
 	s.transport.ListenAndAccept()
 }
 
+func (s *Server) sendPeerList(p *Peer) error {
+	// peerList := make([]net.Addr, len(s.peers))
+	peerList := MessagePeerList{
+		Peers: make([]string, len(s.peers)),
+	}
+
+	msg := NewMessage(NetAddr(s.ListenAddr), peerList)
+
+	buf := new(bytes.Buffer)
+	if err := gob.NewEncoder(buf).Encode(msg); err != nil {
+		return err
+	}
+	return p.Send(buf.Bytes())
+}
+
 func (s *Server) SendHandshake(p *Peer) error {
 	hs := &Handshake{
 		Version:     s.Version,
@@ -114,7 +130,6 @@ func (s *Server) loop() {
 			logrus.WithFields(logrus.Fields{
 				"addr": peer.conn.RemoteAddr(),
 			}).Info("new player disconnected")
-
 			delete(s.peers, peer.conn.RemoteAddr())
 
 		case peer := <-s.addPeer:
@@ -134,12 +149,18 @@ func (s *Server) loop() {
 					delete(s.peers, peer.conn.RemoteAddr())
 					continue
 				}
+
+				if err := s.sendPeerList(peer); err != nil {
+					logrus.Errorf("failed to send peer list to incoming connection: %v", err)
+					// peer.conn.Close()
+					// delete(s.peers, peer.conn.RemoteAddr())
+					continue
+				} // This closing brace was missing!
 			}
 
 			logrus.WithFields(logrus.Fields{
 				"addr": peer.conn.RemoteAddr(),
 			}).Info("handshake successful: new player connected")
-
 			s.peers[peer.conn.RemoteAddr()] = peer
 
 		case msg := <-s.msgCh:
@@ -148,7 +169,6 @@ func (s *Server) loop() {
 			}
 		}
 	}
-
 }
 
 func (s *Server) handshake(p *Peer) error {
@@ -175,6 +195,11 @@ func (s *Server) handshake(p *Peer) error {
 }
 
 func (s *Server) handleMessage(msg *Message) error {
-	fmt.Printf("%+v\n", msg)
+	panic(reflect.TypeOf(msg))
 	return nil
+}
+
+func init() {
+	gob.Register(MessagePeerList{})
+	gob.Register(NetAddr(""))
 }
