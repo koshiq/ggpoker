@@ -1,6 +1,8 @@
 package main
 
 import (
+	"time"
+
 	"github.com/koshiq/ggpoker/p2p"
 )
 
@@ -12,6 +14,9 @@ func makeServerAndStart(addr string) *p2p.Server {
 	}
 	server := p2p.NewServer(cfg)
 	go server.Start()
+
+	time.Sleep(1 * time.Second)
+
 	return server
 }
 
@@ -20,9 +25,11 @@ func main() {
 	playerB := makeServerAndStart(":4000")
 	playerC := makeServerAndStart(":5000")
 
-	playerA.Connect(":4000")
-	playerB.Connect(":5000")
-	playerC.Connect(":3000")
+	playerC.Connect(playerA.ListenAddr)
+
+	time.Sleep(2 * time.Millisecond)
+
+	playerB.Connect(playerC.ListenAddr)
 
 	select {}
 }

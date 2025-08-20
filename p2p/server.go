@@ -85,6 +85,7 @@ func (s *Server) sendPeerList(p *Peer) error {
 	it := 0
 	for addr := range s.peers {
 		peerList.Peers[it] = addr.String()
+		it++
 	}
 
 	msg := NewMessage(s.ListenAddr, peerList)
@@ -111,7 +112,8 @@ func (s *Server) SendHandshake(p *Peer) error {
 }
 
 func (s *Server) Connect(addr string) error {
-	conn, err := net.DialTimeout("tcp", addr, 1*time.Minute)
+	fmt.Printf("dialing from %s to %s\n", s.ListenAddr, addr)
+	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
 	if err != nil {
 		return err
 	}
@@ -122,6 +124,8 @@ func (s *Server) Connect(addr string) error {
 	}
 
 	s.addPeer <- peer
+
+	fmt.Printf("dial from %s to %s successful\n", s.ListenAddr, addr)
 
 	return s.SendHandshake(peer)
 
@@ -211,7 +215,9 @@ func (s *Server) handleMessage(msg *Message) error {
 }
 
 func (s *Server) handlePeerList(l MessagePeerList) error {
+	fmt.Printf("peerlist => %+v\n", l)
 	for i := 0; i < len(l.Peers); i++ {
+
 		if err := s.Connect(l.Peers[i]); err != nil {
 			logrus.Errorf("failed to dial peer: %v", err)
 			continue
