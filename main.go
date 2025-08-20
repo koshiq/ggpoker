@@ -1,44 +1,28 @@
 package main
 
 import (
-	"log"
-	"time"
-
 	"github.com/koshiq/ggpoker/p2p"
 )
 
-func main() {
+func makeServerAndStart(addr string) *p2p.Server {
 	cfg := p2p.ServerConfig{
 		Version:     "GGPOKER V0.1-alpha",
-		ListenAddr:  ":3000",
+		ListenAddr:  addr,
 		GameVariant: p2p.TexasHoldem,
 	}
 	server := p2p.NewServer(cfg)
 	go server.Start()
+	return server
+}
 
-	time.Sleep(1 * time.Second)
+func main() {
+	playerA := makeServerAndStart(":3000")
+	playerB := makeServerAndStart(":4000")
+	playerC := makeServerAndStart(":5000")
 
-	remoteCfg := p2p.ServerConfig{
-		Version:     "GGPOKER V0.1-alpha",
-		ListenAddr:  ":4000",
-		GameVariant: p2p.TexasHoldem,
-	}
-	remoteServer := p2p.NewServer(remoteCfg)
-	go remoteServer.Start()
-	if err := remoteServer.Connect(":3000"); err != nil {
-		log.Fatal(err)
-	}
-
-	otherCfg := p2p.ServerConfig{
-		Version:     "GGPOKER V0.1-alpha",
-		ListenAddr:  ":3001",
-		GameVariant: p2p.TexasHoldem,
-	}
-	otherServer := p2p.NewServer(otherCfg)
-	go otherServer.Start()
-	if err := otherServer.Connect(":4000"); err != nil {
-		log.Fatal(err)
-	}
+	playerA.Connect(":4000")
+	playerB.Connect(":5000")
+	playerC.Connect(":3000")
 
 	select {}
 }

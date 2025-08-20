@@ -82,6 +82,11 @@ func (s *Server) sendPeerList(p *Peer) error {
 		Peers: make([]string, len(s.peers)),
 	}
 
+	it := 0
+	for addr := range s.peers {
+		peerList.Peers[it] = addr.String()
+	}
+
 	msg := NewMessage(s.ListenAddr, peerList)
 
 	buf := new(bytes.Buffer)
@@ -199,13 +204,22 @@ func (s *Server) handleMessage(msg *Message) error {
 	}).Info("received message")
 
 	switch v := msg.Payload.(type) {
-	case *MessagePeerList:
-		fmt.Printf("%v\n", v)
+	case MessagePeerList:
+		return s.handlePeerList(v)
+	}
+	return nil
+}
+
+func (s *Server) handlePeerList(l MessagePeerList) error {
+	for i := 0; i < len(l.Peers); i++ {
+		if err := s.Connect(l.Peers[i]); err != nil {
+			logrus.Errorf("failed to dial peer: %v", err)
+			continue
+		}
 	}
 	return nil
 }
 
 func init() {
 	gob.Register(MessagePeerList{})
-	gob.Register(Message{})
 }
