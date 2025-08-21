@@ -112,7 +112,20 @@ func (s *Server) SendHandshake(p *Peer) error {
 	return p.Send(buf.Bytes())
 }
 
+func (s *Server) isInPeerList(addr string) bool {
+	for _, peer := range s.peers {
+		if peer.listenAddr == addr {
+			return true
+		}
+	}
+	return false
+}
+
 func (s *Server) Connect(addr string) error {
+	if s.isInPeerList(addr) {
+		return nil
+	}
+
 	conn, err := net.DialTimeout("tcp", addr, 1*time.Second)
 	if err != nil {
 		return err
@@ -180,6 +193,7 @@ func (s *Server) handleNewPeer(peer *Peer) error {
 		"variant":    hs.GameVariant,
 		"gameStatus": hs.GameStatus.String(),
 		"listenAddr": peer.listenAddr,
+		"we":         s.ListenAddr,
 	}).Info("handshake successful: new player connected")
 
 	s.peers[peer.conn.RemoteAddr()] = peer
@@ -207,10 +221,6 @@ func (s *Server) handshake(p *Peer) (*Handshake, error) {
 }
 
 func (s *Server) handleMessage(msg *Message) error {
-	logrus.WithFields(logrus.Fields{
-		"from": msg.From,
-	}).Info("received message")
-
 	switch v := msg.Payload.(type) {
 	case MessagePeerList:
 		return s.handlePeerList(v)
@@ -219,7 +229,11 @@ func (s *Server) handleMessage(msg *Message) error {
 }
 
 func (s *Server) handlePeerList(l MessagePeerList) error {
-	fmt.Printf("peerlist => %+v\n", l)
+	logrus.WithFields(logrus.Fields{
+		"we":    s.ListenAddr,
+		"peers": l.Peers,
+	}).Info("received peerlist message")
+
 	for i := 0; i < len(l.Peers); i++ {
 
 		if err := s.Connect(l.Peers[i]); err != nil {
