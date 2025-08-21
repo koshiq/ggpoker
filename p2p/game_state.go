@@ -183,6 +183,10 @@ func (g *GameState) getCurrentDealerAddr() (string, bool) {
 }
 
 func (g *GameState) ShuffleAndEncrypt(from string, deck [][]byte) error {
+	if g.table.LenPlayers() < 2 {
+		return fmt.Errorf("need at least 2 players to start dealing, got %d", g.table.LenPlayers())
+	}
+
 	fmt.Println("addr", g.listenAddr)
 	fmt.Printf("%+v\n", g.table)
 	prevPlayer, err := g.table.GetPlayerBefore(g.listenAddr)
