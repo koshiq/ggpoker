@@ -156,7 +156,7 @@ func (s *Server) SendHandshake(p *Peer) error {
 	hs := &Handshake{
 		GameVariant: s.GameVariant,
 		Version:     s.Version,
-		GameStatus:  GameStatus(s.gameState.currentStatus.Load().(GameStatus)),
+		GameStatus:  GameStatus(s.gameState.currentStatus.Get()),
 		ListenAddr:  s.ListenAddr,
 	}
 
@@ -383,24 +383,4 @@ func init() {
 	gob.Register(MessageReady{})
 	gob.Register(MessagePreFlop{})
 	gob.Register(MessagePlayerAction{})
-}
-
-// APIServer stub - TODO: implement proper API server
-type APIServer struct {
-	listenAddr string
-	gameState  *GameState
-}
-
-func NewAPIServer(listenAddr string, gameState *GameState) *APIServer {
-	return &APIServer{
-		listenAddr: listenAddr,
-		gameState:  gameState,
-	}
-}
-
-func (api *APIServer) Run() {
-	// TODO: Implement API server
-	logrus.WithFields(logrus.Fields{
-		"listenAddr": api.listenAddr,
-	}).Info("API server stub running")
 }
