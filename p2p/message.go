@@ -22,3 +22,21 @@ type Handshake struct {
 type MessagePeerList struct {
 	Peers []string
 }
+
+type MessagePreFlop struct{}
+
+type MessageEncDeck struct {
+	Deck []byte
+}
+
+type MessageReady struct{}
+
+type MessagePlayerAction struct {
+	Action string
+	Amount int
+}
+
+type BroadcastTo struct {
+	To      []string
+	Payload any
+}
