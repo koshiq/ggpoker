@@ -10,8 +10,12 @@ func (pa PlayerAction) String() string {
 		return "FOLD"
 	case PlayerActionCheck:
 		return "CHECK"
+	case PlayerActionCall:
+		return "CALL"
 	case PlayerActionBet:
 		return "BET"
+	case PlayerActionRaise:
+		return "RAISE"
 	default:
 		return "INVALID"
 	}
@@ -21,7 +25,9 @@ const (
 	PlayerActionNone PlayerAction = iota
 	PlayerActionFold
 	PlayerActionCheck
+	PlayerActionCall
 	PlayerActionBet
+	PlayerActionRaise
 )
 
 type GameStatus int32

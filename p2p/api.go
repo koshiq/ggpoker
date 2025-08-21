@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/gorilla/mux"
+	"github.com/gorilla/websocket"
 )
 
 type MyError struct {
@@ -35,22 +36,28 @@ func JSON(w http.ResponseWriter, status int, v any) error {
 type APIServer struct {
 	listenAddr string
 	game       *GameState
+	upgrader   websocket.Upgrader
 }
 
 func NewAPIServer(listenAddr string, game *GameState) *APIServer {
 	return &APIServer{
 		game:       game,
 		listenAddr: listenAddr,
+		upgrader:   websocket.Upgrader{CheckOrigin: func(r *http.Request) bool { return true }},
 	}
 }
 
 func (s *APIServer) Run() {
 	r := mux.NewRouter()
 
+	// Serve static files if web/dist exists
+	r.PathPrefix("/").Handler(http.FileServer(http.Dir("web/dist"))).Methods(http.MethodGet)
+
 	r.HandleFunc("/ready", makeHTTPHandleFunc(s.handlePlayerReady))
 	r.HandleFunc("/fold", makeHTTPHandleFunc(s.handlePlayerFold))
 	r.HandleFunc("/check", makeHTTPHandleFunc(s.handlePlayerCheck))
 	r.HandleFunc("/bet/{value}", makeHTTPHandleFunc(s.handlePlayerBet))
+	r.HandleFunc("/ws", s.handleWebSocket)
 
 	http.ListenAndServe(s.listenAddr, r)
 }
@@ -86,4 +93,15 @@ func (s *APIServer) handlePlayerFold(w http.ResponseWriter, r *http.Request) err
 func (s *APIServer) handlePlayerReady(w http.ResponseWriter, r *http.Request) error {
 	s.game.SetReady()
 	return JSON(w, http.StatusOK, "READY")
+}
+
+func (s *APIServer) handleWebSocket(w http.ResponseWriter, r *http.Request) {
+	conn, err := s.upgrader.Upgrade(w, r, nil)
+	if err != nil {
+		return
+	}
+	defer conn.Close()
+
+	// TODO: Implement WebSocket game state updates
+	// For now, just close the connection
 }

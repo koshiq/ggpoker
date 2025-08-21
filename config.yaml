@@ -1,0 +1,53 @@
+# GG Poker Configuration
+
+# WHOP Integration
+whop:
+  api_key: "${WHOP_API_KEY}"  # Set via environment variable
+  product_id: "${WHOP_PRODUCT_ID}"  # Your WHOP product ID
+  webhook_secret: "${WHOP_WEBHOOK_SECRET}"  # For webhook verification
+
+# Game Settings
+game:
+  small_blind: 10
+  big_blind: 20
+  starting_stack: 1000
+  max_players: 6
+  min_players: 2
+  auto_start: true
+  hand_timeout: 30  # seconds
+
+# P2P Network
+p2p:
+  listen_port: 3000
+  api_port: 3001
+  max_peers: 10
+  discovery_timeout: 5000  # milliseconds
+  heartbeat_interval: 30000  # milliseconds
+
+# Web Interface
+web:
+  port: 5173
+  host: "0.0.0.0"
+  cors_origins:
+    - "http://localhost:3000"
+    - "http://localhost:5173"
+    - "https://yourdomain.com"
+
+# Database (optional, for persistence)
+database:
+  type: "sqlite"  # or "postgres", "mysql"
+  dsn: "./poker.db"
+  max_connections: 10
+
+# Logging
+logging:
+  level: "info"  # debug, info, warn, error
+  format: "json"  # json, text
+  output: "stdout"  # stdout, file
+  file_path: "./logs/poker.log"
+
+# Security
+security:
+  jwt_secret: "${JWT_SECRET}"  # Set via environment variable
+  session_timeout: 3600  # seconds
+  rate_limit: 100  # requests per minute per IP
