@@ -9,12 +9,8 @@ import (
 
 type NetAddr string
 
+func (n NetAddr) String() string  { return string(n) }
 func (n NetAddr) Network() string { return "tcp" }
-
-// type Message struct {
-// 	Payload io.Reader
-// 	From    net.Addr
-// }
 
 type Peer struct {
 	conn       net.Conn
@@ -31,13 +27,14 @@ func (p *Peer) ReadLoop(msgch chan *Message) {
 	for {
 		msg := new(Message)
 		if err := gob.NewDecoder(p.conn).Decode(msg); err != nil {
-			logrus.Errorf("failed to decode message: %v", err)
+			logrus.Errorf("decode message error: %s", err)
 			break
 		}
 
 		msgch <- msg
-
 	}
+
+	// TODO(@anthdm): unregister this peer!!!
 	p.conn.Close()
 }
 
@@ -59,6 +56,7 @@ func (t *TCPTransport) ListenAndAccept() error {
 	if err != nil {
 		return err
 	}
+
 	t.listener = ln
 
 	for {
@@ -74,6 +72,5 @@ func (t *TCPTransport) ListenAndAccept() error {
 		}
 
 		t.AddPeer <- peer
-
 	}
 }
