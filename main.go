@@ -24,18 +24,18 @@ func main() {
 	playerA := makeServerAndStart("127.0.0.1:3000")
 	playerB := makeServerAndStart(":4000")
 	playerC := makeServerAndStart(":5000")
-	playerD := makeServerAndStart(":6000")
+	// playerC := makeServerAndStart(":5000")
+	// playerD := makeServerAndStart(":6000")
 
+	time.Sleep(1 * time.Second)
 	playerB.Connect(playerA.ListenAddr)
-	playerC.Connect(playerB.ListenAddr)
-	playerD.Connect(playerC.ListenAddr)
 
-	time.Sleep(2 * time.Millisecond)
+	time.Sleep(1 * time.Second)
+	playerC.Connect(playerB.ListenAddr)
+	// playerC.Connect(playerB.ListenAddr)
+	// playerD.Connect(playerC.ListenAddr)
 
 	//playerB.Connect(playerC.ListenAddr)
-
-	_ = playerA
-	_ = playerB
 
 	select {}
 }

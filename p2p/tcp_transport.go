@@ -17,8 +17,9 @@ func (n NetAddr) Network() string { return "tcp" }
 // }
 
 type Peer struct {
-	conn     net.Conn
-	outbound bool
+	conn       net.Conn
+	outbound   bool
+	listenAddr string
 }
 
 func (p *Peer) Send(b []byte) error {
