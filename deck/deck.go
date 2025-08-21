@@ -11,51 +11,47 @@ type Suit int
 func (s Suit) String() string {
 	switch s {
 	case Spades:
-		return "Spades"
-	case Hearts:
-		return "Hearts"
+		return "SPADES"
+	case Harts:
+		return "HARTS"
 	case Diamonds:
-		return "Diamonds"
+		return "DIAMONDS"
 	case Clubs:
-		return "Clubs"
+		return "CLUBS"
 	default:
-		panic("invalid suit")
+		panic("invalid card suit")
 	}
 }
 
 const (
-	Spades Suit = iota
-	Hearts
-	Diamonds
-	Clubs
+	Spades   Suit = iota // 0
+	Harts                // 1
+	Diamonds             // 2
+	Clubs                // 3
 )
 
 type Card struct {
-	suit  Suit
-	value int
+	Suit  Suit
+	Value int
 }
 
 func (c Card) String() string {
-	value := strconv.Itoa(c.value)
-	if c.value == 1 {
+	value := strconv.Itoa(c.Value)
+	if c.Value == 1 {
 		value = "ACE"
-	} else if c.value == 11 {
-		value = "Jack"
-	} else if c.value == 12 {
-		value = "Queen"
-	} else if c.value == 13 {
-		value = "King"
 	}
-	return fmt.Sprintf("%s of %s %s", value, c.suit, suitToUnicode(c.suit))
+
+	return fmt.Sprintf("%s of %s %s", value, c.Suit, suitToUnicode(c.Suit))
 }
 
 func NewCard(s Suit, v int) Card {
 	if v > 13 {
-		panic("the value of the cards must be between 1 and 13")
+		panic("the value of the card cannot be higher then 13")
 	}
+
 	return Card{
-		suit:  s,
-		value: v,
+		Suit:  s,
+		Value: v,
 	}
 }
 
@@ -67,6 +63,7 @@ func New() Deck {
 		nCards = 13
 		d      = [52]Card{}
 	)
+
 	x := 0
 	for i := 0; i < nSuits; i++ {
 		for j := 0; j < nCards; j++ {
@@ -74,6 +71,7 @@ func New() Deck {
 			x++
 		}
 	}
+
 	return shuffle(d)
 }
 
@@ -85,6 +83,7 @@ func shuffle(d Deck) Deck {
 			d[i], d[r] = d[r], d[i]
 		}
 	}
+
 	return d
 }
 
@@ -92,13 +91,13 @@ func suitToUnicode(s Suit) string {
 	switch s {
 	case Spades:
 		return "♠"
-	case Hearts:
+	case Harts:
 		return "♥"
 	case Diamonds:
 		return "♦"
 	case Clubs:
 		return "♣"
 	default:
-		panic("invalid suit")
+		panic("invalid card suit")
 	}
 }
